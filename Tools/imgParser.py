@@ -19,10 +19,15 @@ class Parser:
     if v >= 0:
       self.map[0].append(v)
       self.parseRight(0)
+      
       self.parseRight(0)
+      
       self.parseRight(0)
+      
       self.parseRight(0)
+      
       self.parseRight(0)
+
       self.parseRight(0)
     else:
       print("ERROR!!!! check img state")
@@ -38,20 +43,22 @@ class Parser:
   def parseRight(self, i):
     #경계지점 다음에 블록이 시작되는 지점을 찾고 저장
     #0: 초기상태 1: 경계지점
-    state = 0
     
-    while(state<2):
+    state = 0
+    print(imposiible, possible)
+    while(state<2 and self.j < len(self.img[i])):
       if state == 0 and self.img[i][self.j][2] == imposiible:
-        print(self.j)
+        print("DEBUG 1", self.j)
         state = 1
         
       elif state == 1 and self.img[i][self.j][2] == possible:
         state = 2
         v = self.getValue(self.img[i][self.j][2])
-        print("DEBUG ", v)
+        print("DEBUG 2", v, self.j)
         self.map[i].append(v)
         return
       else:
+        # print("-----", self.j, self.img[i][self.j][2])
         self.j += 1
     # def Parse(self):
 
