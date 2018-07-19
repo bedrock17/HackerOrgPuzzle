@@ -12,7 +12,7 @@
 #define ABS(n) ((n) > 0 ? (n) : -(n))
 using namespace std;
 
-void display();
+// void display();
 void backTurn(int num, int x, int y);
 void dfs(int x, int y);
 int bfs(int x, int y);
@@ -35,17 +35,24 @@ const int around[4][2] = {
 	{1, 2}, {0, 3}, {0, 3}, {1, 2}
 };
 
-int main()
+int main(int argc, char* argv[])
 {
 	//print interface in console
-	display();
+	// display();
 
 	//receive input data
 	const int INPUT_SIZE = 1000;
 	int pos = 0;
 	char input[INPUT_SIZE];
 
-	scanf("x=%d&y=%d&board=%s", &width, &height, input);
+	if (argc < 4) {
+		printf("input format error!! app {x} {y} {mapstring}\n");
+	}
+	width = atoi(argv[1]);
+	height = atoi(argv[2]);
+	snprintf(input, sizeof(input), "%s", argv[3]);
+
+	// scanf("x=%d&y=%d&board=%s", &width, &height, input);
 
 	board = new char*[height];
 	for (int i = 0; i < height; ++i)
@@ -98,39 +105,18 @@ int main()
 
 EXIT:;
 	printf("\a%.3f seconds\n", (clock() - start) / 1000.0);
-	printf("http://www.hacker.org/coil/index.php?x=%d&y=%d&qpath=%s\n\n", ansY, ansX, qpath.c_str());
+
+	FILE * fp = fopen("outurl", "wt");
+	fprintf(fp, "http://www.hacker.org/coil/index.php?x=%d&y=%d&qpath=%s", ansY, ansX, qpath.c_str());
+	fclose(fp);
 
 	//delete dynamic memory allocated
 	for (int i = 0; i < height; ++i) delete[] board[i];
 	delete[] board;
 
-	system("pause");
-
 	return 0;
 }
 
-void display()
-{
-	//system("mode con: lines=40 cols=130");
-	system("title Mortal Coil Solution v.1.89");
-
-	puts("");
-	puts("  _|      _|                        _|                _|        _|_|_|            _|  _|\n"
-		"  _|_|  _|_|    _|_|    _|  _|_|  _|_|_|_|    _|_|_|  _|      _|          _|_|        _|\n"
-		"  _|  _|  _|  _|    _|  _|_|        _|      _|    _|  _|      _|        _|    _|  _|  _|\n"
-		"  _|      _|  _|    _|  _|          _|      _|    _|  _|      _|        _|    _|  _|  _|\n"
-		"  _|      _|    _|_|    _|            _|_|    _|_|_|  _|        _|_|_|    _|_|    _|  _|\n\n");
-
-	puts("    _|_|_|            _|              _|      _|                    \n"
-		"  _|          _|_|    _|  _|    _|  _|_|_|_|        _|_|    _|_|_|  \n"
-		"    _|_|    _|    _|  _|  _|    _|    _|      _|  _|    _|  _|    _|\n"
-		"        _|  _|    _|  _|  _|    _|    _|      _|  _|    _|  _|    _|\n"
-		"  _|_|_|      _|_|    _|    _|_|_|      _|_|  _|    _|_|    _|    _|  v.1.89\n\n");
-
-	printf("* Please enter flashvars element of html embed tag.\n\n");
-	printf("* For example: x=5&y=5&board=X......XX................\n\n");
-	printf(">>> ");
-}
 void dfs(int x, int y)
 {
 	bool isConnected;
