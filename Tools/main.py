@@ -8,7 +8,8 @@ now = input("level : ")
 for level in range(int(now), 101):
   level = str(level)
 
-  qobj = {"PHPSESSID":"vtaJUtPy3mTed7bESEcSZ1", "phpbb2mysql_sid":"be01423027e7e26f871a81ee368bb2b5"}
+  #예제입니다 본인의 세션으로 변경해주세요
+  qobj = {"PHPSESSID":"vtaJUtPy3md7bESEcSZ1", "phpbb2mysql_sid":"be01423027e7e26f871a81ee368b5"}
 
   req = s.get("http://www.hacker.org/coil/index.php?gotolevel="+level+"&go=Go+To+Level",
   cookies=qobj)
