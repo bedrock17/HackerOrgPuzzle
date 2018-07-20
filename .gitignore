@@ -1,4 +1,5 @@
 *.exe
 *.o
 .vscode
+__pycache__
 app
