@@ -3,17 +3,25 @@ import os
 
 s = requests.session()
 
+userid = input("ID : ")
+userpwd = input("PWD : ")
+
+payload = {'username': userid, 'password': userpwd,
+"redirect":"", "login":"Log+in"}
+
+url = 'http://www.hacker.org/forum/login.php'
+ret = s.post(url, data=payload)
+
+#print(ret.text)
+
 now = input("level : ")
 
-for level in range(int(now), 101):
+maxlevel = 100
+for level in range(int(now), maxlevel + 1):
   level = str(level)
 
-  #예제입니다 본인의 세션으로 변경해주세요
-  qobj = {"PHPSESSID":"vtaJUtPy3md7bESEcSZ1", "phpbb2mysql_sid":"be01423027e7e26f871a81ee368b5"}
 
-  req = s.get("http://www.hacker.org/coil/index.php?gotolevel="+level+"&go=Go+To+Level",
-  cookies=qobj)
-
+  req = s.get("http://www.hacker.org/coil/index.php?gotolevel="+level+"&go=Go+To+Level") 
   # print(req.text)
 
 
@@ -25,9 +33,9 @@ for level in range(int(now), 101):
 
   arr = value.split("&")
 
-  print(arr)
+  #print(arr)
 
-  cmd = "app " + arr[0][2:] + " " + arr[1][2:] + " " + arr[2][6:]
+  cmd = "./app " + arr[0][2:] + " " + arr[1][2:] + " " + arr[2][6:]
 
   print("yun app command : " + cmd)
   os.system(cmd)
@@ -37,8 +45,7 @@ for level in range(int(now), 101):
   urlf.close()
 
   print(qpathurl)
-  req = s.get(qpathurl,
-  cookies=qobj)
+  req = s.get(qpathurl)
 
   # print(req.text)
 
