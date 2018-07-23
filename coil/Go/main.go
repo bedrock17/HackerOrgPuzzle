@@ -1,10 +1,15 @@
 package main
 
-import "fmt"
-import "strconv"
-import "os"
+import (
+	"fmt"
+	"os"
+	"runtime"
+	"strconv"
+	"sync"
+	"time"
+)
 
-var gIsSolved bool = false
+var gIsSolved = false
 var width int
 var height int
 var wCount int //white count
@@ -42,18 +47,20 @@ func isValid(i, j int) bool {
 }
 
 //완탐 재귀
-var dpath string = "RDLU"
+var dpath = []string{"R", "D", "L", "U"}
 
-func scan(m [][]int, i int, j int, depth int, path string, whiteCount int) {
+func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *int) {
 	// fmt.Println("Scan pos ", i, j)
 	if gIsSolved {
 		return
 	}
 
-	fmt.Println("DEBUG ====== ", depth)
-	for i := 0; i < height; i++ {
-		fmt.Println(m[i])
+	if whiteCount < 30 {
+		fmt.Println("DEBUG ====== ", *num, depth, path, whiteCount)
 	}
+	// for i := 0; i < height; i++ {
+	// 	fmt.Println(m[i])
+	// }
 
 	for d := 0; d < 4; d++ {
 		var log []pos
@@ -63,7 +70,14 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int) {
 			m[ni][nj] = depth
 			whiteCount--
 			if whiteCount == 0 {
+
+				fmt.Println("DEBUG ====== ", depth, "========path :", path)
+				for i := 0; i < height; i++ {
+					fmt.Println(m[i])
+				}
+
 				gIsSolved = true
+
 			}
 			log = append(log, pos{ni, nj})
 			ni += gDirection[d].i
@@ -75,7 +89,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int) {
 		ni -= gDirection[d].i
 		nj -= gDirection[d].j
 		if len(log) > 0 {
-			scan(m, ni, nj, depth+1, "", whiteCount)
+			scan(m, ni, nj, depth+1, path+dpath[d], whiteCount, num)
 			// fmt.Println("Scan end")
 			for k := 0; k < len(log); k++ {
 				// fmt.Println("remove", log[k].i, " ", log[k].j)
@@ -86,22 +100,38 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int) {
 	}
 }
 
+var goCount int = 0
+var mutex = &sync.Mutex{}
+
 //한 좌표당 한게임 고루틴으로 뺼것
 func game(m [][]int, i int, j int) {
 	mymap := cpmap(m)
 
 	mymap[i][j] = 2
 
-	scan(mymap, i, j, 3, "", wCount-1)
+	num := i*10 + j
+	mutex.Lock()
+	goCount++
+	fmt.Println("go start", i, j, goCount)
+	mutex.Unlock()
+
+	scan(mymap, i, j, 3, "", wCount-1, &num)
+
+	mutex.Lock()
+	goCount--
+	fmt.Println("go end", i, j, goCount)
+	mutex.Unlock()
 
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	fmt.Println(runtime.GOMAXPROCS(0))
 
 	width, _ = strconv.Atoi(os.Args[1])
 	height, _ = strconv.Atoi(os.Args[2])
 	board := os.Args[3]
-	// = {{1, 0},{0, 1},{-1, 0},{0, -1}}
+
 	gDirection = append(gDirection, pos{0, 1})
 	gDirection = append(gDirection, pos{1, 0})
 	gDirection = append(gDirection, pos{0, -1})
@@ -125,15 +155,23 @@ func main() {
 	for i := 0; i < height; i++ {
 		fmt.Println(m[i])
 	}
-	// fmt.Println("Hello" + "WOrld" + 'a')
-	game(m, 1, 8)
-	// game(m, 0, 0)
-	// for i := 0; i < height; i++ {
-	// 	fmt.Println(m[i])
-	// }
 
-	// fmt.Println("Hello WOrld", a, b)
-	// fmt.Println(width, height, board)
+	fmt.Scanln()
+
+	for i := 0; i < height; i++ {
+		for j := 0; j < width; j++ {
+			if m[i][j] == 0 && gIsSolved == false {
+				fmt.Println(i, j, "start")
+				go game(m, i, j)
+			}
+		}
+	}
+
+	for gIsSolved == false {
+		time.Sleep(1000)
+		fmt.Println("wait", goCount)
+	}
+
 	fmt.Println(gIsSolved)
 
 }
