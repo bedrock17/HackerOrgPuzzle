@@ -93,6 +93,8 @@ func gameOverCheck(m [][]int, i, j, whiteCount int) bool {
 	return ret
 }
 
+var gCount = 0
+
 //완탐 재귀
 func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *int) {
 	// fmt.Println("Scan pos ", i, j)
@@ -100,13 +102,28 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 		return
 	}
 
-	if whiteCount < 30 {
-		fmt.Println("DEBUG ====== ", *num, depth, path, whiteCount)
-	}
-	// for i := 0; i < height; i++ {
-	// 	fmt.Println(m[i])
+	// if whiteCount < 30 {
+
 	// }
 
+	if goCount%100 == 0 {
+		fmt.Println("DEBUG ====== ", *num, depth, path, whiteCount)
+		for i := 0; i < height; i++ {
+			for j := 0; j < width; j++ {
+				if m[i][j] != 0 {
+					fmt.Printf("%2X ", m[i][j])
+				} else {
+					fmt.Printf("   ")
+				}
+			}
+			fmt.Println("")
+			// fmt.Println("")
+		}
+		time.Sleep(1000 * time.Millisecond)
+		gCount = 0
+	}
+
+	goCount++
 	for d := 0; d < 4; d++ {
 		var log []pos
 		ni, nj := i+gDirection[d].i, j+gDirection[d].j
@@ -202,7 +219,7 @@ func main() {
 		for j := 0; j < width; j++ {
 			if m[i][j] == 0 && gIsSolved == false {
 				fmt.Println(i, j, "start")
-				go game(m, i, j)
+				game(m, i, j)
 			}
 		}
 	}
