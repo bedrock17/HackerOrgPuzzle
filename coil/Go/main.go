@@ -13,11 +13,9 @@ var gIsSolved = false
 var width int
 var height int
 var wCount int //white count
-var gDirection []pos
+var gDirection = []pos{pos{0, 1}, pos{1, 0}, pos{0, -1}, pos{-1, 0}}
 
-// func IsEnd() bool {
-// 	return true
-// }
+var dpath = []string{"R", "D", "L", "U"}
 
 //맵복사
 func cpmap(m [][]int) [][]int {
@@ -47,8 +45,6 @@ func isValid(i, j int) bool {
 }
 
 //완탐 재귀
-var dpath = []string{"R", "D", "L", "U"}
-
 func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *int) {
 	// fmt.Println("Scan pos ", i, j)
 	if gIsSolved {
@@ -131,11 +127,6 @@ func main() {
 	width, _ = strconv.Atoi(os.Args[1])
 	height, _ = strconv.Atoi(os.Args[2])
 	board := os.Args[3]
-
-	gDirection = append(gDirection, pos{0, 1})
-	gDirection = append(gDirection, pos{1, 0})
-	gDirection = append(gDirection, pos{0, -1})
-	gDirection = append(gDirection, pos{-1, 0})
 
 	var m [][]int
 	for i := 0; i < height; i++ {
