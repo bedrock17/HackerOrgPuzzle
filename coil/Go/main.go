@@ -44,6 +44,55 @@ func isValid(i, j int) bool {
 	return false
 }
 
+//원형큐
+type posQueue struct {
+	q     []pos
+	size  int
+	start int
+	end   int
+}
+
+func (pq *posQueue) create(size int) {
+	pq.q = make([]pos, size)
+	pq.size = size
+}
+
+func (pq *posQueue) put(p pos) {
+	if (pq.end+1)%pq.size != pq.start%pq.size {
+		pq.q[pq.end] = p
+		pq.end++
+	} else {
+		fmt.Println("PQ OVERFLOW!")
+	}
+}
+
+func (pq *posQueue) get() pos {
+	var p = pos{-1, -1}
+	if pq.start != pq.end {
+		p = pq.q[pq.start]
+		pq.start++
+	} else {
+		fmt.Println("PQ EMPTY")
+	}
+	return p
+}
+
+//탐색 불가능한경우
+func gameOverCheck(m [][]int, i, j, whiteCount int) bool {
+	ret := false
+
+	var pq posQueue
+	pq.create(100)
+
+	// queue := make([]pos, 1000)
+
+	// {
+
+	// }
+
+	return ret
+}
+
 //완탐 재귀
 func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *int) {
 	// fmt.Println("Scan pos ", i, j)
