@@ -59,7 +59,7 @@ func (pq *posQueue) create(size int) {
 
 func (pq *posQueue) put(p pos) {
 	if (pq.end+1)%pq.size != pq.start%pq.size {
-		pq.q[pq.end] = p
+		pq.q[pq.end%pq.size] = p
 		pq.end++
 	} else {
 		fmt.Println("PQ OVERFLOW!")
@@ -69,33 +69,76 @@ func (pq *posQueue) put(p pos) {
 func (pq *posQueue) get() pos {
 	var p = pos{-1, -1}
 	if pq.start != pq.end {
-		p = pq.q[pq.start]
+		p = pq.q[pq.start%pq.size]
 		pq.start++
 	} else {
 		fmt.Println("PQ EMPTY")
 	}
 	return p
 }
+func (pq *posQueue) length() int {
+	return pq.end - pq.start
+}
 
 //탐색 불가능한경우
 func gameOverCheck(m [][]int, i, j, whiteCount int) bool {
-	ret := false
 
 	var pq posQueue
-	pq.create(100)
-
+	pq.create(whiteCount)
+	pq.put(pos{i, j})
 	// queue := make([]pos, 1000)
+	var log []pos
 
-	// {
+	for pq.length() > 0 {
+		p := pq.get()
+		for d := 0; d < 4; d++ {
 
+			// fmt.Println("check : ", p)
+
+			ni, nj := p.i+gDirection[d].i, p.j+gDirection[d].j
+
+			for isValid(ni, nj) && m[ni][nj] == 0 {
+				m[ni][nj] = -1
+				whiteCount--
+				pq.put(pos{ni, nj})
+				log = append(log, pos{ni, nj})
+			}
+		}
+
+	}
+	// fmt.Println("DEBUG 2====== ", whiteCount, pq.length(), len(log))
+	// for i := 0; i < height; i++ {
+	// 	for j := 0; j < width; j++ {
+	// 		if m[i][j] != 0 {
+	// 			fmt.Printf("%2X ", m[i][j])
+	// 		} else {
+	// 			fmt.Printf("   ")
+	// 		}
+	// 	}
+	// 	fmt.Println("")
+	// 	// fmt.Println("")
 	// }
+	// time.Sleep(1000 * time.Millisecond)
 
-	return ret
+	if len(log) > 0 {
+		// scan(m, ni, nj, depth+1, path+dpath[d], whiteCount, num)
+		// fmt.Println("Scan end")
+		for k := 0; k < len(log); k++ {
+			// fmt.Println("remove", log[k].i, " ", log[k].j)
+			m[log[k].i][log[k].j] = 0
+			// whiteCount++
+		}
+	}
+
+	return whiteCount != 0
 }
 
 var gCount = 0
 
 //완탐 재귀
+
+var gi, gj int
+
 func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *int) {
 	// fmt.Println("Scan pos ", i, j)
 	if gIsSolved {
@@ -106,7 +149,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 
 	// }
 
-	if goCount%100 == 0 {
+	if gCount%1 == 0 && gi == 1 && gj == 8 {
 		fmt.Println("DEBUG ====== ", *num, depth, path, whiteCount)
 		for i := 0; i < height; i++ {
 			for j := 0; j < width; j++ {
@@ -123,12 +166,16 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 		gCount = 0
 	}
 
-	goCount++
+	gCount++
 	for d := 0; d < 4; d++ {
 		var log []pos
 		ni, nj := i+gDirection[d].i, j+gDirection[d].j
 
+		if gameOverCheck(m, ni, nj, whiteCount) {
+			continue
+		}
 		for isValid(ni, nj) && m[ni][nj] == 0 {
+
 			m[ni][nj] = depth
 			whiteCount--
 			if whiteCount == 0 {
@@ -148,9 +195,10 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 		}
 		// fmt.Println("-------------------")
 		//탐색후 복구
-		ni -= gDirection[d].i
-		nj -= gDirection[d].j
+
 		if len(log) > 0 {
+			ni -= gDirection[d].i
+			nj -= gDirection[d].j
 			scan(m, ni, nj, depth+1, path+dpath[d], whiteCount, num)
 			// fmt.Println("Scan end")
 			for k := 0; k < len(log); k++ {
@@ -177,6 +225,7 @@ func game(m [][]int, i int, j int) {
 	fmt.Println("go start", i, j, goCount)
 	mutex.Unlock()
 
+	gi, gj = i, j
 	scan(mymap, i, j, 3, "", wCount-1, &num)
 
 	mutex.Lock()
@@ -225,7 +274,7 @@ func main() {
 	}
 
 	for gIsSolved == false {
-		time.Sleep(1000)
+		time.Sleep(1000 * time.Millisecond)
 		fmt.Println("wait", goCount)
 	}
 
