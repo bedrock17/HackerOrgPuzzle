@@ -55,20 +55,24 @@ type posQueue struct {
 func (pq *posQueue) create(size int) {
 	pq.q = make([]pos, size)
 	pq.size = size
+	pq.start = 0
+	pq.end = 0
 }
 
 func (pq *posQueue) put(p pos) {
-	if (pq.end+1)%pq.size != pq.start%pq.size {
+	// fmt.Println(pq.end+1, pq.start, pq.end<pq.start)
+	if pq.end+1 >= pq.start {
 		pq.q[pq.end%pq.size] = p
 		pq.end++
 	} else {
-		fmt.Println("PQ OVERFLOW!")
+		fmt.Println("PQ OVERFLOW!", p, pq.start, pq.end, pq.size)
+		time.Sleep(2000 * time.Millisecond)
 	}
 }
 
 func (pq *posQueue) get() pos {
 	var p = pos{-1, -1}
-	if pq.start != pq.end {
+	if pq.start+1 <= pq.end {
 		p = pq.q[pq.start%pq.size]
 		pq.start++
 	} else {
@@ -81,13 +85,23 @@ func (pq *posQueue) length() int {
 }
 
 //탐색 불가능한경우
+// 가능 false
+// 불가능 true
 func gameOverCheck(m [][]int, i, j, whiteCount int) bool {
 
 	var pq posQueue
-	pq.create(whiteCount)
-	pq.put(pos{i, j})
-	// queue := make([]pos, 1000)
 	var log []pos
+
+	if m[i][j] != 0 {
+		return true
+	}
+
+	pq.create(whiteCount)
+
+	m[i][j] = -1
+	whiteCount--
+	pq.put(pos{i, j})
+	log = append(log, pos{i, j})
 
 	for pq.length() > 0 {
 		p := pq.get()
@@ -120,24 +134,32 @@ func gameOverCheck(m [][]int, i, j, whiteCount int) bool {
 	// }
 	// time.Sleep(1000 * time.Millisecond)
 
-	if len(log) > 0 {
-		// scan(m, ni, nj, depth+1, path+dpath[d], whiteCount, num)
-		// fmt.Println("Scan end")
-		for k := 0; k < len(log); k++ {
-			// fmt.Println("remove", log[k].i, " ", log[k].j)
-			m[log[k].i][log[k].j] = 0
-			// whiteCount++
-		}
+	// if len(log) > 0 {
+	// scan(m, ni, nj, depth+1, path+dpath[d], whiteCount, num)
+	// fmt.Println("Scan end")
+	for k := 0; k < len(log); k++ {
+		// fmt.Println("remove", log[k].i, " ", log[k].j)
+		m[log[k].i][log[k].j] = 0
+		// whiteCount++
 	}
+	// }
+	// if whiteCount < 3 && whiteCount != 0 {
+	// 	fmt.Println("====*> ", whiteCount)
+	// 	fmt.Println(whiteCount)
+	// time.Sleep(1 * time.Second)
+	// }
 
+	// if i == 1 && j == 1 {
+	// fmt.Println("!!!!!!!!!!!!", i, j, whiteCount)
+	// }
 	return whiteCount != 0
 }
 
-var gCount = 0
+// var gCount = 0
 
 //완탐 재귀
 
-var gi, gj int
+// var gi, gj int
 
 func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *int) {
 	// fmt.Println("Scan pos ", i, j)
@@ -149,28 +171,39 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 
 	// }
 
-	if gCount%1 == 0 && gi == 1 && gj == 8 {
-		fmt.Println("DEBUG ====== ", *num, depth, path, whiteCount)
-		for i := 0; i < height; i++ {
-			for j := 0; j < width; j++ {
-				if m[i][j] != 0 {
-					fmt.Printf("%2X ", m[i][j])
-				} else {
-					fmt.Printf("   ")
-				}
-			}
-			fmt.Println("")
-			// fmt.Println("")
-		}
-		time.Sleep(1000 * time.Millisecond)
-		gCount = 0
-	}
+	// if gCount%1 == 0 && gi == 1 && gj == 8 {
+	// fmt.Println("DEBUG ====== ", *num, depth, path, whiteCount)
+	// for i := 0; i < height; i++ {
+	// 	for j := 0; j < width; j++ {
+	// 		if m[i][j] != 0 {
+	// 			if m[i][j] == 1 {
+	// 				fmt.Printf(".  ")
+	// 			} else {
+	// 				fmt.Printf("%02X ", m[i][j])
+	// 			}
+	// 		} else {
+	// 			fmt.Printf("   ")
+	// 		}
+	// 	}
+	// 	fmt.Println("")
+	// fmt.Println("")
+	// }
+	// time.Sleep(100 * time.Millisecond)
+	// gCount = 0
+	// }
 
-	gCount++
+	// gCount++
 	for d := 0; d < 4; d++ {
 		var log []pos
 		ni, nj := i+gDirection[d].i, j+gDirection[d].j
 
+		if !isValid(ni, nj) {
+			continue
+		}
+		// if whiteCount < 10 {
+		// fmt.Println("game over check ", i, j, ni, nj, whiteCount)
+		// time.Sleep(3000 * time.Millisecond)
+		// }
 		if gameOverCheck(m, ni, nj, whiteCount) {
 			continue
 		}
@@ -225,12 +258,15 @@ func game(m [][]int, i int, j int) {
 	fmt.Println("go start", i, j, goCount)
 	mutex.Unlock()
 
-	gi, gj = i, j
+	// gi, gj = i, j
 	scan(mymap, i, j, 3, "", wCount-1, &num)
 
 	mutex.Lock()
 	goCount--
-	fmt.Println("go end", i, j, goCount)
+
+	if !gIsSolved {
+		fmt.Println("go end", i, j, goCount)
+	}
 	mutex.Unlock()
 
 }
@@ -268,7 +304,7 @@ func main() {
 		for j := 0; j < width; j++ {
 			if m[i][j] == 0 && gIsSolved == false {
 				fmt.Println(i, j, "start")
-				game(m, i, j)
+				go game(m, i, j)
 			}
 		}
 	}
