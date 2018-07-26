@@ -140,7 +140,7 @@ func gameOverCheck(m [][]int, i, j, whiteCount int) bool {
 	for k := 0; k < len(log); k++ {
 		// fmt.Println("remove", log[k].i, " ", log[k].j)
 		m[log[k].i][log[k].j] = 0
-		// whiteCount++
+
 	}
 	// }
 	// if whiteCount < 3 && whiteCount != 0 {
@@ -157,8 +157,6 @@ func gameOverCheck(m [][]int, i, j, whiteCount int) bool {
 
 // var gCount = 0
 
-//완탐 재귀
-
 // var gi, gj int
 
 func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *int) {
@@ -166,10 +164,6 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 	if gIsSolved {
 		return
 	}
-
-	// if whiteCount < 30 {
-
-	// }
 
 	// if gCount%1 == 0 && gi == 1 && gj == 8 {
 	// fmt.Println("DEBUG ====== ", *num, depth, path, whiteCount)
@@ -192,7 +186,6 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 	// gCount = 0
 	// }
 
-	// gCount++
 	for d := 0; d < 4; d++ {
 		var log []pos
 		ni, nj := i+gDirection[d].i, j+gDirection[d].j
@@ -200,10 +193,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 		if !isValid(ni, nj) {
 			continue
 		}
-		// if whiteCount < 10 {
-		// fmt.Println("game over check ", i, j, ni, nj, whiteCount)
-		// time.Sleep(3000 * time.Millisecond)
-		// }
+
 		if gameOverCheck(m, ni, nj, whiteCount) {
 			continue
 		}
@@ -212,13 +202,23 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 			m[ni][nj] = depth
 			whiteCount--
 			if whiteCount == 0 {
-
-				fmt.Println("DEBUG ====== ", depth, "========path :", path)
-				for i := 0; i < height; i++ {
-					fmt.Println(m[i])
-				}
-
 				gIsSolved = true
+				fmt.Println("DEBUG ====== ", depth, "========path :", path)
+				for ii := 0; ii < height; ii++ {
+					for jj := 0; jj < width; jj++ {
+						if m[ii][jj] != 0 {
+							if m[ii][jj] == 1 {
+								fmt.Printf(".  ")
+							} else {
+								fmt.Printf("%02X ", m[ii][jj])
+							}
+						} else {
+							fmt.Printf("   ")
+						}
+					}
+					fmt.Println("")
+					// fmt.Println("")
+				}
 
 			}
 			log = append(log, pos{ni, nj})
@@ -226,16 +226,13 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 			nj += gDirection[d].j
 
 		}
-		// fmt.Println("-------------------")
-		//탐색후 복구
 
+		//탐색후 복구
 		if len(log) > 0 {
 			ni -= gDirection[d].i
 			nj -= gDirection[d].j
 			scan(m, ni, nj, depth+1, path+dpath[d], whiteCount, num)
-			// fmt.Println("Scan end")
 			for k := 0; k < len(log); k++ {
-				// fmt.Println("remove", log[k].i, " ", log[k].j)
 				m[log[k].i][log[k].j] = 0
 				whiteCount++
 			}
@@ -243,7 +240,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 	}
 }
 
-var goCount int = 0
+var goCount = 0
 var mutex = &sync.Mutex{}
 
 //한 좌표당 한게임 고루틴으로 뺼것
@@ -258,7 +255,6 @@ func game(m [][]int, i int, j int) {
 	fmt.Println("go start", i, j, goCount)
 	mutex.Unlock()
 
-	// gi, gj = i, j
 	scan(mymap, i, j, 3, "", wCount-1, &num)
 
 	mutex.Lock()
@@ -310,10 +306,10 @@ func main() {
 	}
 
 	for gIsSolved == false {
-		time.Sleep(1000 * time.Millisecond)
+		time.Sleep(5000 * time.Millisecond)
 		fmt.Println("wait", goCount)
 	}
-
+	time.Sleep(100 * time.Second)
 	fmt.Println(gIsSolved)
 
 }
