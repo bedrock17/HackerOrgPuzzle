@@ -205,7 +205,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 	// 	for j := 0; j < width; j++ {
 	// 		if m[i][j] != 0 {
 	// 			if m[i][j] == 1 {
-	// 				fmt.Printf(".  ")
+	// 				fmt.Printf("11 ")
 	// 			} else {
 	// 				fmt.Printf("%02X ", m[i][j])
 	// 			}
@@ -213,7 +213,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 	// 			fmt.Printf("   ")
 	// 		}
 	// 	}
-	// 	fmt.Println("")
+	// fmt.Println("")
 	// fmt.Println("")
 	// }
 	// time.Sleep(200 * time.Millisecond)
@@ -264,7 +264,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 							}
 
 							if m[ii][jj] == 1 {
-								fmt.Printf("... ")
+								fmt.Printf("111 ")
 							} else {
 								fmt.Printf("%03X ", m[ii][jj])
 							}
@@ -287,7 +287,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 		if len(log) > 0 {
 			ni -= gDirection[d].i
 			nj -= gDirection[d].j
-			if noLog {
+			if noLog && depth > 3 {
 				scan(m, ni, nj, depth+1, path, whiteCount, num)
 			} else {
 				scan(m, ni, nj, depth+1, path+dpath[d], whiteCount, num)
