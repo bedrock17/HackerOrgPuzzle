@@ -99,11 +99,8 @@ func gameOverCheck(m [][]int, i, j, whiteCount int) bool {
 	//들어가면 나올 수 없는곳이 2개 이상인 경우
 	var deadPoint = 0
 
-	// fmt.Println("start===>1")
 	for ii := 0; ii < height; ii++ {
-		// fmt.Println("start===>2")
 		for jj := 0; jj < width; jj++ {
-			// fmt.Println("start===>3")
 			if m[ii][jj] == 0 {
 				var cnt = 0
 				for d := 0; d < 4; d++ {
