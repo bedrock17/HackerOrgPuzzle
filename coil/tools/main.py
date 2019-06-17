@@ -11,18 +11,18 @@ payload = {'username': userid, 'password': userpwd,
 
 url = 'http://www.hacker.org/forum/login.php'
 ret = s.post(url, data=payload)
-
+  
 #print(ret.text)
 
 now = input("level : ")
 
-maxlevel = 300
+maxlevel = 300 #실행할 최대 레벨
 for level in range(int(now), maxlevel + 1):
   level = str(level)
 
 
   req = s.get("http://www.hacker.org/coil/index.php?gotolevel="+level+"&go=Go+To+Level") 
-  # print(req.text)
+  print(req.text)
 
 
   pre="<param name=\"FlashVars\" value=\""
@@ -34,8 +34,10 @@ for level in range(int(now), maxlevel + 1):
   arr = value.split("&")
 
   #print(arr)
-
   cmd = "goapp " + arr[0][2:] + " " + arr[1][2:] + " " + arr[2][6:]
+  levelcmdfile = open("level"+str(level)+"cmd.txt", "wt")
+  levelcmdfile.write(cmd)
+  levelcmdfile.close()
 
   print("cube golang app command : " + cmd)
   os.system(cmd)
