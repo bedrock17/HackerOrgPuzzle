@@ -57,49 +57,8 @@ func isValid(i, j int) bool {
 	return false
 }
 
-//원형큐
-type posQueue struct {
-	q     []pos
-	size  int
-	start int
-	end   int
-}
-
-func (pq *posQueue) create(size int) {
-	pq.q = make([]pos, size)
-	pq.size = size
-	pq.start = 0
-	pq.end = 0
-}
-
-func (pq *posQueue) put(p pos) {
-	if pq.end+1 >= pq.start {
-		pq.q[pq.end%pq.size] = p
-		pq.end++
-	} else {
-		fmt.Println("PQ OVERFLOW!", p, pq.start, pq.end, pq.size)
-		time.Sleep(2000 * time.Millisecond)
-	}
-}
-
-func (pq *posQueue) get() pos {
-	var p = pos{-1, -1}
-	if pq.start+1 <= pq.end {
-		p = pq.q[pq.start%pq.size]
-		pq.start++
-	} else {
-		fmt.Println("PQ EMPTY")
-	}
-	return p
-}
-func (pq *posQueue) length() int {
-	return pq.end - pq.start
-}
-
 func printMap(m [][]int, depth int) {
-
 	s := ""
-
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
 			s += fmt.Sprintf("%x", m[i][j])
@@ -111,7 +70,6 @@ func printMap(m [][]int, depth int) {
 			s += "|"
 		}
 	}
-
 }
 
 //모양을 가리지 않고 bfs체크하면서 주변에 비어있는 길이 1개 이면 true 아니면 false
@@ -372,30 +330,31 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 			whiteCount--
 			if whiteCount == 0 {
 				gIsSolved = true
-				fmt.Println("DEBUG ====== ", depth, "========path :", path)
 				gqpath = path
-				for ii := 0; ii < height; ii++ {
-					for jj := 0; jj < width; jj++ {
-						if m[ii][jj] != 0 {
 
-							if m[ii][jj] == 2 {
-								gi = ii
-								gj = jj
-							}
+				if !goTestMode {
+					fmt.Println("DEBUG ====== ", depth, "========path :", path)
+					for ii := 0; ii < height; ii++ {
+						for jj := 0; jj < width; jj++ {
+							if m[ii][jj] != 0 {
 
-							if m[ii][jj] == 1 {
-								fmt.Printf("111 ")
+								if m[ii][jj] == 2 {
+									gi = ii
+									gj = jj
+								}
+
+								if m[ii][jj] == 1 {
+									fmt.Printf("111 ")
+								} else {
+									fmt.Printf("%03X ", m[ii][jj])
+								}
 							} else {
-								fmt.Printf("%03X ", m[ii][jj])
+								fmt.Printf("   ")
 							}
-						} else {
-							fmt.Printf("   ")
 						}
+						fmt.Println("")
 					}
-					fmt.Println("")
-					// fmt.Println("")
 				}
-
 			}
 			log = append(log, pos{ni, nj})
 			ni += gDirection[d].i
@@ -414,7 +373,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 				if gDebugMode && depth >= maxGoRoutine {
 					if gCount%1 == 0 {
 						// fmt.Println("DEBUG ====== ", *num, depth, path, whiteCount)
-						printMap(m, depth)
+						// printMap(m, depth)
 						// time.Sleep(3000 * time.Millisecond)
 						gCount = 0
 						maxGoRoutine = maxRoutineCheck()
@@ -455,7 +414,9 @@ func game(m [][]int, i int, j int) {
 
 	if !gIsSolved {
 		elapsedTime := time.Since(startTime)
-		fmt.Printf("go end %d %d %d %s\n", i, j, goCount, elapsedTime)
+		if !goTestMode {
+			fmt.Printf("go end %d %d %d %s\n", i, j, goCount, elapsedTime)
+		}
 		// fmt.Println(maxGoRoutine)
 		chkMap[i][j] = 3
 	}
@@ -534,7 +495,7 @@ func GetSolution(w, h int, board string) (string, int, int) {
 					chkCount++
 					if chkCount%20 == 0 {
 						mutex.Lock()
-						printMap(chkMap, 3)
+						// printMap(chkMap, 3)
 						elapsedTime := time.Since(startTime)
 						fmt.Println("Spent", elapsedTime)
 						fmt.Println("wait===2> ", i, j, goCount, maxGoRoutine, "[", (i*width + j), "]", "h w", height, width)
