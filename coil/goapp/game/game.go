@@ -6,26 +6,15 @@ import (
 	"strconv"
 	"sync"
 	"time"
-)
 
-//맵 배열의 값
-//0 이하는 예약값
-//1 이상은 벽들
-const (
-	EMPTYVAL            = 0
-	BFSFILLVAL          = -1
-	DEADPOINTVAL        = -2
-	DEADPOINCHECKVAL    = -3
-	DEADPOINCHECKOLDVAL = -4 //확정된 DEADPOINT
+	"./gconst"
 )
 
 var gIsSolved = false
 var width int
 var height int
 var wCount int //white count
-var gDirection = []pos{pos{0, 1}, pos{1, 0}, pos{0, -1}, pos{-1, 0}}
 
-var dpath = []string{"R", "D", "L", "U"}
 var gDebugMode = true
 var goTestMode = false
 var maxGoRoutine int
@@ -79,7 +68,7 @@ func isDeadPointCheck(m [][]int, i, j, count, nowVal int) bool {
 
 	pq.create(count)
 
-	m[i][j] = DEADPOINTVAL
+	m[i][j] = gconst.DEADPOINTVAL
 	count--
 	pq.put(pos{i, j})
 	log = append(log, pos{i, j})
@@ -89,14 +78,14 @@ func isDeadPointCheck(m [][]int, i, j, count, nowVal int) bool {
 		p := pq.get()
 		for d := 0; d < 4; d++ {
 
-			ni, nj := p.i+gDirection[d].i, p.j+gDirection[d].j
+			ni, nj := p.i+gconst.Direction[d].I, p.j+gconst.Direction[d].J
 
-			if isValid(ni, nj) && (m[ni][nj] == EMPTYVAL || m[ni][nj] == nowVal || m[ni][nj] == DEADPOINCHECKOLDVAL) {
+			if isValid(ni, nj) && (m[ni][nj] == gconst.EMPTYVAL || m[ni][nj] == nowVal || m[ni][nj] == gconst.DEADPOINCHECKOLDVAL) {
 				emptyCount++
 			}
 
-			if isValid(ni, nj) && m[ni][nj] == DEADPOINCHECKVAL {
-				m[ni][nj] = DEADPOINTVAL
+			if isValid(ni, nj) && m[ni][nj] == gconst.DEADPOINCHECKVAL {
+				m[ni][nj] = gconst.DEADPOINTVAL
 				pq.put(pos{ni, nj})
 				log = append(log, pos{ni, nj})
 			}
@@ -105,13 +94,13 @@ func isDeadPointCheck(m [][]int, i, j, count, nowVal int) bool {
 
 	if emptyCount > 1 {
 		for k := 0; k < len(log); k++ {
-			m[log[k].i][log[k].j] = EMPTYVAL
+			m[log[k].i][log[k].j] = gconst.EMPTYVAL
 		}
 		return false
 	}
 
 	for k := 0; k < len(log); k++ {
-		m[log[k].i][log[k].j] = DEADPOINCHECKOLDVAL
+		m[log[k].i][log[k].j] = gconst.DEADPOINCHECKOLDVAL
 	}
 	return true
 }
@@ -120,7 +109,7 @@ func isDeadPointCheck(m [][]int, i, j, count, nowVal int) bool {
 func rectCheck(m [][]int, i, j, width, height int) bool {
 	for ii := i; ii < i+height; ii++ {
 		for jj := j; jj < j+width; jj++ {
-			if isValid(ii, jj) == false || m[ii][jj] != EMPTYVAL {
+			if isValid(ii, jj) == false || m[ii][jj] != gconst.EMPTYVAL {
 				return false
 			}
 		}
@@ -133,7 +122,7 @@ func rectCheck(m [][]int, i, j, width, height int) bool {
 func rectFill(m [][]int, i, j, width, height int) {
 	for ii := i; ii < i+height; ii++ {
 		for jj := j; jj < j+width; jj++ {
-			m[ii][jj] = DEADPOINCHECKVAL
+			m[ii][jj] = gconst.DEADPOINCHECKVAL
 		}
 	}
 }
@@ -148,11 +137,11 @@ func deadPointGameOverCheck(m [][]int, nowVal int) bool {
 	// 들어가면 나올 수 없는곳이 2개 이상인 경우
 	for ii := 0; ii < height; ii++ {
 		for jj := 0; jj < width; jj++ {
-			if m[ii][jj] == EMPTYVAL {
+			if m[ii][jj] == gconst.EMPTYVAL {
 				var cnt = 0
 				for d := 0; d < 4; d++ {
-					ni, nj := ii+gDirection[d].i, jj+gDirection[d].j
-					if isValid(ni, nj) && (m[ni][nj] == EMPTYVAL || m[ni][nj] == nowVal) {
+					ni, nj := ii+gconst.Direction[d].I, jj+gconst.Direction[d].J
+					if isValid(ni, nj) && (m[ni][nj] == gconst.EMPTYVAL || m[ni][nj] == nowVal) {
 						cnt++
 						if cnt > 1 {
 							break
@@ -215,8 +204,8 @@ func deadPointGameOverCheck(m [][]int, nowVal int) bool {
 END:
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
-			if m[i][j] == DEADPOINCHECKOLDVAL {
-				m[i][j] = EMPTYVAL
+			if m[i][j] == gconst.DEADPOINCHECKOLDVAL {
+				m[i][j] = gconst.EMPTYVAL
 			}
 		}
 	}
@@ -243,7 +232,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 	cnt := 0
 	for d := 0; d < 4; d++ {
 
-		ni, nj := i+gDirection[d].i, j+gDirection[d].j
+		ni, nj := i+gconst.Direction[d].I, j+gconst.Direction[d].J
 		if isValid(ni, nj) && m[ni][nj] == 0 {
 			cnt++
 		}
@@ -254,60 +243,64 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 		noLog = true
 	}
 
+	disconnectionCheck := false //맵이 서로 연결되지 않았는지
 	for d := 0; d < 4; d++ {
 		var log []pos
-		ni, nj := i+gDirection[d].i, j+gDirection[d].j
+		ni, nj := i+gconst.Direction[d].I, j+gconst.Direction[d].J
 
 		if !isValid(ni, nj) {
 			continue
 		}
 
-		if gameOverCheck(m, ni, nj, whiteCount, depth-1) {
+		if gameOverCheck(m, ni, nj, whiteCount, depth-1) && !disconnectionCheck {
 			continue
 		}
+		disconnectionCheck = true //한쪽만 체크하면 된다.
 
 		for isValid(ni, nj) && m[ni][nj] == 0 {
 
 			m[ni][nj] = depth
 			whiteCount--
-			if whiteCount == 0 {
-				gIsSolved = true
-				gqpath = path
 
-				if !goTestMode {
-					fmt.Println("DEBUG ====== ", depth, "========path :", path)
-					for ii := 0; ii < height; ii++ {
-						for jj := 0; jj < width; jj++ {
-							if m[ii][jj] != 0 {
+			log = append(log, pos{ni, nj})
+			ni += gconst.Direction[d].I
+			nj += gconst.Direction[d].J
 
-								if m[ii][jj] == 2 {
-									gi = ii
-									gj = jj
-								}
+		}
 
-								if m[ii][jj] == 1 {
-									fmt.Printf("111 ")
-								} else {
-									fmt.Printf("%03X ", m[ii][jj])
-								}
-							} else {
-								fmt.Printf("   ")
+		if whiteCount == 0 { // 정답!
+			gIsSolved = true
+			gqpath = path
+
+			if !goTestMode {
+				fmt.Println("DEBUG ====== ", depth, "========path :", path)
+				for ii := 0; ii < height; ii++ {
+					for jj := 0; jj < width; jj++ {
+						if m[ii][jj] != 0 {
+
+							if m[ii][jj] == 2 {
+								gi = ii
+								gj = jj
 							}
+
+							if m[ii][jj] == 1 {
+								fmt.Printf("111 ")
+							} else {
+								fmt.Printf("%03X ", m[ii][jj])
+							}
+						} else {
+							fmt.Printf("   ")
 						}
-						fmt.Println("")
 					}
+					fmt.Println("")
 				}
 			}
-			log = append(log, pos{ni, nj})
-			ni += gDirection[d].i
-			nj += gDirection[d].j
-
 		}
 
 		//탐색후 복구
 		if len(log) > 0 {
-			ni -= gDirection[d].i
-			nj -= gDirection[d].j
+			ni -= gconst.Direction[d].I
+			nj -= gconst.Direction[d].J
 			if noLog && depth > 3 {
 				scan(m, ni, nj, depth+1, path, whiteCount, num)
 			} else {
@@ -323,7 +316,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 					gCount++
 				}
 
-				scan(m, ni, nj, depth+1, path+dpath[d], whiteCount, num)
+				scan(m, ni, nj, depth+1, path+gconst.Dpath[d], whiteCount, num)
 			}
 			for k := 0; k < len(log); k++ {
 				m[log[k].i][log[k].j] = 0

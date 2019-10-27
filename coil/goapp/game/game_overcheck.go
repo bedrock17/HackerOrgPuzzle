@@ -1,5 +1,7 @@
 package game
 
+import "./gconst"
+
 //탐색 불가능한경우
 // 가능 false
 // 불가능 true
@@ -18,7 +20,7 @@ func gameOverCheck(m [][]int, i, j, whiteCount, nowVal int) bool {
 	//맵이 반토막 난경우
 	pq.create(whiteCount)
 
-	m[i][j] = BFSFILLVAL
+	m[i][j] = gconst.BFSFILLVAL
 	whiteCount--
 	pq.put(pos{i, j})
 	log = append(log, pos{i, j})
@@ -26,7 +28,7 @@ func gameOverCheck(m [][]int, i, j, whiteCount, nowVal int) bool {
 	for pq.length() > 0 {
 		p := pq.get()
 		for d := 0; d < 4; d++ {
-			ni, nj := p.i+gDirection[d].i, p.j+gDirection[d].j
+			ni, nj := p.i+gconst.Direction[d].I, p.j+gconst.Direction[d].J
 
 			// if ni == i && nj == j && false {
 			// 	fmt.Println("========= !\n")
@@ -34,8 +36,8 @@ func gameOverCheck(m [][]int, i, j, whiteCount, nowVal int) bool {
 			// 	goto OUT
 			// }
 
-			if isValid(ni, nj) && m[ni][nj] == 0 {
-				m[ni][nj] = BFSFILLVAL
+			if isValid(ni, nj) && m[ni][nj] == gconst.EMPTYVAL {
+				m[ni][nj] = gconst.BFSFILLVAL
 				whiteCount--
 				pq.put(pos{ni, nj})
 				log = append(log, pos{ni, nj})
@@ -45,7 +47,7 @@ func gameOverCheck(m [][]int, i, j, whiteCount, nowVal int) bool {
 	}
 
 	for k := 0; k < len(log); k++ {
-		m[log[k].i][log[k].j] = EMPTYVAL
+		m[log[k].i][log[k].j] = gconst.EMPTYVAL
 	}
 
 	if avaliable {
