@@ -19,6 +19,7 @@ func main() {
 
 	fmt.Println(width, height, board)
 
+	game.SetDebugMode(false)
 	path, i, j := game.GetSolution(width, height, board)
 
 	file1, _ := os.Create("outurl") // outurl 파일 생성 (정답이 적혀있는 파일)
