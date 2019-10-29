@@ -71,7 +71,12 @@ func isDeadPointCheck(m [][]int, i, j, count, nowVal int) bool {
 	m[i][j] = gconst.DEADPOINTVAL
 	count--
 	pq.put(pos{i, j})
-	log = append(log, pos{i, j})
+
+	log = make([]pos, count*2)
+	logLen := 0
+	// log = append(log, pos{i, j})
+	log[logLen] = pos{i, j}
+	logLen++
 
 	emptyCount := 0
 	for pq.length() > 0 {
@@ -87,19 +92,21 @@ func isDeadPointCheck(m [][]int, i, j, count, nowVal int) bool {
 			if isValid(ni, nj) && m[ni][nj] == gconst.DEADPOINCHECKVAL {
 				m[ni][nj] = gconst.DEADPOINTVAL
 				pq.put(pos{ni, nj})
-				log = append(log, pos{ni, nj})
+				// log = append(log, pos{ni, nj})
+				log[logLen] = pos{ni, nj}
+				logLen++
 			}
 		}
 	}
 
 	if emptyCount > 1 {
-		for k := 0; k < len(log); k++ {
+		for k := 0; k < logLen; k++ {
 			m[log[k].i][log[k].j] = gconst.EMPTYVAL
 		}
 		return false
 	}
 
-	for k := 0; k < len(log); k++ {
+	for k := 0; k < logLen; k++ {
 		m[log[k].i][log[k].j] = gconst.DEADPOINCHECKOLDVAL
 	}
 	return true
@@ -245,14 +252,23 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 
 	disconnectionCheck := false //맵이 서로 연결되지 않았는지
 	for d := 0; d < 4; d++ {
-		var log []pos
+		max := func(x, y int) int {
+			if x > y {
+				return x
+			} else {
+				return y
+			}
+		}
+		log := make([]pos, max(width, height))
+		logLen := 0
+
 		ni, nj := i+gconst.Direction[d].I, j+gconst.Direction[d].J
 
 		if !isValid(ni, nj) {
 			continue
 		}
 
-		if gameOverCheck(m, ni, nj, whiteCount, depth-1) && !disconnectionCheck {
+		if !disconnectionCheck && gameOverCheck(m, ni, nj, whiteCount, depth-1) {
 			continue
 		}
 		disconnectionCheck = true //한쪽만 체크하면 된다.
@@ -262,7 +278,9 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 			m[ni][nj] = depth
 			whiteCount--
 
-			log = append(log, pos{ni, nj})
+			log[logLen] = pos{ni, nj}
+			logLen++
+
 			ni += gconst.Direction[d].I
 			nj += gconst.Direction[d].J
 
@@ -298,7 +316,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 		}
 
 		//탐색후 복구
-		if len(log) > 0 {
+		if logLen > 0 {
 			ni -= gconst.Direction[d].I
 			nj -= gconst.Direction[d].J
 			if noLog && depth > 3 {
@@ -318,7 +336,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 
 				scan(m, ni, nj, depth+1, path+gconst.Dpath[d], whiteCount, num)
 			}
-			for k := 0; k < len(log); k++ {
+			for k := 0; k < logLen; k++ {
 				m[log[k].i][log[k].j] = 0
 				whiteCount++
 			}
@@ -471,11 +489,13 @@ func GetSolution(w, h int, board string) (string, int, int) {
 		wait = 1
 	}
 
-	for gIsSolved == false {
-		time.Sleep(wait * time.Millisecond)
+	if !goTestMode {
+		for gIsSolved == false {
+			time.Sleep(wait * time.Millisecond)
 
-		if !goTestMode {
-			fmt.Println("wait", goCount)
+			if !goTestMode {
+				fmt.Println("wait", goCount)
+			}
 		}
 	}
 
