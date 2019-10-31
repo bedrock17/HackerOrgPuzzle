@@ -47,17 +47,21 @@ func isValid(i, j int) bool {
 }
 
 func printMap(m [][]int, depth int) {
-	s := ""
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
-			s += fmt.Sprintf("%x", m[i][j])
-			if j < width-1 {
-				s += ","
+			if m[i][j] != 0 {
+				if m[i][j] == 1 {
+					fmt.Printf("■")
+				} else if depth == m[i][j] {
+					fmt.Printf("★")
+				} else {
+					fmt.Printf("%02X", m[i][j]%0x100)
+				}
+			} else {
+				fmt.Printf("○")
 			}
 		}
-		if i < height-1 {
-			s += "|"
-		}
+		fmt.Printf(" %d\n", i)
 	}
 }
 
@@ -377,7 +381,7 @@ func GetSolution(w, h int, board string) (string, int, int) {
 					chkCount++
 					if chkCount%20 == 0 {
 						mutex.Lock()
-						// printMap(chkMap, 3)
+						printMap(chkMap, 3)
 						elapsedTime := time.Since(startTime)
 						fmt.Println("Spent", elapsedTime)
 						fmt.Println("wait===2> ", i, j, goCount, maxGoRoutine, "[", (i*width + j), "]", "h w", height, width)
