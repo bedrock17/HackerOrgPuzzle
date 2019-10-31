@@ -2,7 +2,7 @@ package game
 
 type recoverLog struct {
 	pos
-	org int
+	value int
 }
 
 type recoverLogArray struct {
@@ -13,6 +13,7 @@ type recoverLogArray struct {
 func makeLogAraay(size int) recoverLogArray {
 	var r recoverLogArray
 	r.logs = make([]recoverLog, size)
+	r.length = 0
 	return r
 }
 

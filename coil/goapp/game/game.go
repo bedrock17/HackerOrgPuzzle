@@ -134,91 +134,6 @@ func rectFill(m [][]int, i, j, width, height int) {
 	}
 }
 
-// m: 맵
-// nowVal: 현재 진행중인 칸 값 (이값은 벽으로 치지 않는다)
-// return: 탐색 불가능 하면 true
-func deadPointGameOverCheck(m [][]int, nowVal int) bool {
-	ret := false
-	deadPointCnt := 0
-
-	// 들어가면 나올 수 없는곳이 2개 이상인 경우
-	for ii := 0; ii < height; ii++ {
-		for jj := 0; jj < width; jj++ {
-			if m[ii][jj] == gconst.EMPTYVAL {
-				var cnt = 0
-				for d := 0; d < 4; d++ {
-					ni, nj := ii+gconst.Direction[d].I, jj+gconst.Direction[d].J
-					if isValid(ni, nj) && (m[ni][nj] == gconst.EMPTYVAL || m[ni][nj] == nowVal) {
-						cnt++
-						if cnt > 1 {
-							break
-						}
-					}
-				}
-				if cnt == 1 {
-					deadPointCnt++
-				}
-
-				if deadPointCnt > 1 {
-					return true
-				}
-
-			}
-		}
-	}
-
-	for i := 0; i < height-1; i++ {
-		for j := 0; j < width-1; j++ {
-			if rectCheck(m, i, j, 2, 2) {
-				rectwidth := 2
-				rectheight := 2
-				wcheck := true
-				hcheck := true
-				for wcheck || hcheck {
-					wcheck = rectCheck(m, i, j, rectwidth+1, rectheight)
-
-					if wcheck {
-						rectwidth++
-					}
-
-					hcheck = rectCheck(m, i, j, width, rectheight+1)
-
-					if hcheck {
-						rectheight++
-					}
-
-				}
-				rectFill(m, i, j, rectwidth, rectheight)
-
-				if isDeadPointCheck(m, i, j, rectwidth*rectheight, nowVal) {
-
-					deadPointCnt++
-
-					if deadPointCnt > 1 {
-						// if true {
-						// 	printMap(m, nowVal)
-						// 	fmt.Println("gameovercheck=================", deadPointCnt)
-						// 	time.Sleep(time.Second * 3)
-						// }
-						ret = true
-						goto END
-					}
-				}
-			}
-		}
-	}
-
-END:
-	for i := 0; i < height; i++ {
-		for j := 0; j < width; j++ {
-			if m[i][j] == gconst.DEADPOINCHECKOLDVAL {
-				m[i][j] = gconst.EMPTYVAL
-			}
-		}
-	}
-	return ret
-}
-
 var gCount int //디버깅용 count
 var gi, gj int
 var gqpath string
@@ -268,10 +183,23 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 			continue
 		}
 
-		if !disconnectionCheck && gameOverCheck(m, ni, nj, whiteCount, depth-1) {
-			continue
+		if !disconnectionCheck {
+
+			if whiteCount > (int)(float64(width*height)*0.6) {
+				tileLog := makeCheckTile(m, i, j, whiteCount)
+				if checkBFS(m, ni, nj, tileLog.length, tileLog) {
+					continue
+				}
+			} else {
+				if gameOverCheck(m, ni, nj, whiteCount, depth-1) {
+					continue
+				}
+			}
+			// if gameOverCheck(m, ni, nj, whiteCount, depth-1) {
+			// 	continue
+			// }
+			disconnectionCheck = true //한쪽만 체크하면 된다.
 		}
-		disconnectionCheck = true //한쪽만 체크하면 된다.
 
 		for isValid(ni, nj) && m[ni][nj] == 0 {
 
@@ -395,6 +323,7 @@ func gameInit() {
 	height = 0
 	wCount = 0
 	maxGoRoutine = 0
+	gqpath = ""
 
 	//옵션은 초기화 하지 않는다.
 	// gDebugMode = true
