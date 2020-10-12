@@ -3,8 +3,8 @@ import os
 
 s = requests.session()
 
-userid = input("ID : ")
-userpwd = input("PWD : ")
+userid = "_cube" #input("ID : ")
+userpwd = "zsefxdv" #input("PWD : ")
 
 payload = {'username': userid, 'password': userpwd,
 "redirect":"", "login":"Log+in"}
@@ -12,11 +12,11 @@ payload = {'username': userid, 'password': userpwd,
 url = 'http://www.hacker.org/forum/login.php'
 ret = s.post(url, data=payload)
   
-#print(ret.text)
+print(ret.text)
 
 now = input("level : ")
 
-maxlevel = 300 #실행할 최대 레벨
+maxlevel = 30 #실행할 최대 레벨
 for level in range(int(now), maxlevel + 1):
   level = str(level)
 
