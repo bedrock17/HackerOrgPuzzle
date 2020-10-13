@@ -4,5 +4,5 @@
 __pycache__
 app
 outurl
-&.json
-goapp
+level*.txt
+*.json
