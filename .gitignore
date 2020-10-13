@@ -4,5 +4,4 @@
 __pycache__
 app
 outurl
-&.json
-goapp
+*.json
