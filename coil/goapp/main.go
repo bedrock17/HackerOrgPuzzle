@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strconv"
 
-	"./game"
+	"goapp/game"
 )
 
 func main() {

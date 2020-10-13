@@ -1,4 +1,4 @@
-package gconst
+package game
 
 //맵 배열의 값
 //0 이하는 예약값
@@ -13,11 +13,6 @@ const (
 	DISCONNECTCHECKSTART = -6 // 탐색이 끊겨버린 상황인지 확인하기 위한 타일
 	DISCONNECTCHECKEND   = -7 // 탐색이 끊겨버린 상황인지 확인하기 위한 타일
 )
-
-type pos struct {
-	I int
-	J int
-}
 
 //Direction 방향
 var Direction = []pos{pos{0, 1}, pos{1, 0}, pos{0, -1}, pos{-1, 0}}

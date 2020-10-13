@@ -1,9 +1,5 @@
 package game
 
-import (
-	"./gconst"
-)
-
 // i, j위치부터 비어있지 않은 부분을 채워준다.
 // 그리고 비어있지 않은 부분 근처 비어있는 타일을 체크 타일로 바꿔준다
 func makeCheckTile(m [][]int, i, j, whiteCount int) (checkTileLogs recoverLogArray) {
@@ -15,24 +11,24 @@ func makeCheckTile(m [][]int, i, j, whiteCount int) (checkTileLogs recoverLogArr
 	checkTileLogs = makeLogAraay(whiteCount)
 
 	recoverLogs.append(recoverLog{pos{i, j}, m[i][j]}) //원래대로 돌리기위해 이전값도 넣어준다.
-	m[i][j] = gconst.DISCONNECTCHECKUSED               //visit
+	m[i][j] = DISCONNECTCHECKUSED                      //visit
 	for pq.length() > 0 {
 		p := pq.get()
 
 		// fmt.Println(len(recoverLogs.logs), recoverLogs.length)
 
 		for d := 0; d < 8; d++ {
-			ni, nj := p.i+gconst.Direction8[d].I, p.j+gconst.Direction8[d].J
+			ni, nj := p.i+Direction8[d].i, p.j+Direction8[d].j
 
 			if isValid(ni, nj) && m[ni][nj] > 0 {
 				recoverLogs.append(recoverLog{pos{ni, nj}, m[ni][nj]}) //원래대로 돌리기위해 이전값도 넣어준다.
-				// fmt.Println(ni, nj, m[ni][nj], gconst.DISCONNECTCHECKUSED)
-				m[ni][nj] = gconst.DISCONNECTCHECKUSED //visit
+				// fmt.Println(ni, nj, m[ni][nj], DISCONNECTCHECKUSED)
+				m[ni][nj] = DISCONNECTCHECKUSED //visit
 				pq.put(pos{ni, nj})
 
-			} else if isValid(ni, nj) && m[ni][nj] == gconst.EMPTYVAL {
+			} else if isValid(ni, nj) && m[ni][nj] == EMPTYVAL {
 				checkTileLogs.append(recoverLog{pos{ni, nj}, m[ni][nj]})
-				m[ni][nj] = gconst.DISCONNECTCHECKSTART
+				m[ni][nj] = DISCONNECTCHECKSTART
 			}
 		}
 	}
@@ -56,10 +52,10 @@ func checkBFS(m [][]int, i, j, tileCount int, tileLog recoverLogArray) bool {
 	for pq.length() > 0 {
 		p := pq.get()
 		for d := 0; d < 4; d++ {
-			ni, nj := p.i+gconst.Direction[d].I, p.j+gconst.Direction[d].J
+			ni, nj := p.i+Direction[d].i, p.j+Direction[d].j
 
-			if isValid(ni, nj) && m[ni][nj] == gconst.DISCONNECTCHECKSTART {
-				m[ni][nj] = gconst.DISCONNECTCHECKEND
+			if isValid(ni, nj) && m[ni][nj] == DISCONNECTCHECKSTART {
+				m[ni][nj] = DISCONNECTCHECKEND
 				tileCount--
 				pq.put(pos{ni, nj})
 
@@ -89,7 +85,7 @@ func gameOverCheck(m [][]int, i, j, whiteCount, nowVal int) bool {
 	//맵이 반토막 난경우
 	pq.create(whiteCount)
 
-	m[i][j] = gconst.BFSFILLVAL
+	m[i][j] = BFSFILLVAL
 	whiteCount--
 	pq.put(pos{i, j})
 
@@ -102,10 +98,10 @@ func gameOverCheck(m [][]int, i, j, whiteCount, nowVal int) bool {
 	for pq.length() > 0 {
 		p := pq.get()
 		for d := 0; d < 4; d++ {
-			ni, nj := p.i+gconst.Direction[d].I, p.j+gconst.Direction[d].J
+			ni, nj := p.i+Direction[d].i, p.j+Direction[d].j
 
-			if isValid(ni, nj) && m[ni][nj] == gconst.EMPTYVAL {
-				m[ni][nj] = gconst.BFSFILLVAL
+			if isValid(ni, nj) && m[ni][nj] == EMPTYVAL {
+				m[ni][nj] = BFSFILLVAL
 				whiteCount--
 				pq.put(pos{ni, nj})
 				// log = append(log, pos{ni, nj})
@@ -118,7 +114,7 @@ func gameOverCheck(m [][]int, i, j, whiteCount, nowVal int) bool {
 	}
 
 	for k := 0; k < logLen; k++ {
-		m[log[k].i][log[k].j] = gconst.EMPTYVAL
+		m[log[k].i][log[k].j] = EMPTYVAL
 	}
 
 	return whiteCount != 0
@@ -134,11 +130,11 @@ func deadPointGameOverCheck(m [][]int, nowVal int) bool {
 	// 들어가면 나올 수 없는곳이 2개 이상인 경우
 	for ii := 0; ii < height; ii++ {
 		for jj := 0; jj < width; jj++ {
-			if m[ii][jj] == gconst.EMPTYVAL {
+			if m[ii][jj] == EMPTYVAL {
 				var cnt = 0
 				for d := 0; d < 4; d++ {
-					ni, nj := ii+gconst.Direction[d].I, jj+gconst.Direction[d].J
-					if isValid(ni, nj) && (m[ni][nj] == gconst.EMPTYVAL || m[ni][nj] == nowVal) {
+					ni, nj := ii+Direction[d].i, jj+Direction[d].j
+					if isValid(ni, nj) && (m[ni][nj] == EMPTYVAL || m[ni][nj] == nowVal) {
 						cnt++
 						if cnt > 1 {
 							break
@@ -201,8 +197,8 @@ func deadPointGameOverCheck(m [][]int, nowVal int) bool {
 END:
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
-			if m[i][j] == gconst.DEADPOINCHECKOLDVAL {
-				m[i][j] = gconst.EMPTYVAL
+			if m[i][j] == DEADPOINCHECKOLDVAL {
+				m[i][j] = EMPTYVAL
 			}
 		}
 	}

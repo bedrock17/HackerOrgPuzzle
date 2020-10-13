@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"sync"
 	"time"
-
-	"./gconst"
 )
 
 var gIsSolved = false
@@ -18,6 +16,8 @@ var wCount int //white count
 var gDebugMode = true
 var goTestMode = false
 var maxGoRoutine int
+
+var gClient client
 
 //맵복사
 func cpmap(m [][]int) [][]int {
@@ -72,7 +72,7 @@ func isDeadPointCheck(m [][]int, i, j, count, nowVal int) bool {
 
 	pq.create(count)
 
-	m[i][j] = gconst.DEADPOINTVAL
+	m[i][j] = DEADPOINTVAL
 	count--
 	pq.put(pos{i, j})
 
@@ -86,15 +86,12 @@ func isDeadPointCheck(m [][]int, i, j, count, nowVal int) bool {
 	for pq.length() > 0 {
 		p := pq.get()
 		for d := 0; d < 4; d++ {
-
-			ni, nj := p.i+gconst.Direction[d].I, p.j+gconst.Direction[d].J
-
-			if isValid(ni, nj) && (m[ni][nj] == gconst.EMPTYVAL || m[ni][nj] == nowVal || m[ni][nj] == gconst.DEADPOINCHECKOLDVAL) {
+			ni, nj := p.i+Direction[d].i, p.j+Direction[d].j
+			if isValid(ni, nj) && (m[ni][nj] == EMPTYVAL || m[ni][nj] == nowVal || m[ni][nj] == DEADPOINCHECKOLDVAL) {
 				emptyCount++
 			}
-
-			if isValid(ni, nj) && m[ni][nj] == gconst.DEADPOINCHECKVAL {
-				m[ni][nj] = gconst.DEADPOINTVAL
+			if isValid(ni, nj) && m[ni][nj] == DEADPOINCHECKVAL {
+				m[ni][nj] = DEADPOINTVAL
 				pq.put(pos{ni, nj})
 				// log = append(log, pos{ni, nj})
 				log[logLen] = pos{ni, nj}
@@ -105,13 +102,13 @@ func isDeadPointCheck(m [][]int, i, j, count, nowVal int) bool {
 
 	if emptyCount > 1 {
 		for k := 0; k < logLen; k++ {
-			m[log[k].i][log[k].j] = gconst.EMPTYVAL
+			m[log[k].i][log[k].j] = EMPTYVAL
 		}
 		return false
 	}
 
 	for k := 0; k < logLen; k++ {
-		m[log[k].i][log[k].j] = gconst.DEADPOINCHECKOLDVAL
+		m[log[k].i][log[k].j] = DEADPOINCHECKOLDVAL
 	}
 	return true
 }
@@ -120,7 +117,7 @@ func isDeadPointCheck(m [][]int, i, j, count, nowVal int) bool {
 func rectCheck(m [][]int, i, j, width, height int) bool {
 	for ii := i; ii < i+height; ii++ {
 		for jj := j; jj < j+width; jj++ {
-			if isValid(ii, jj) == false || m[ii][jj] != gconst.EMPTYVAL {
+			if isValid(ii, jj) == false || m[ii][jj] != EMPTYVAL {
 				return false
 			}
 		}
@@ -133,7 +130,7 @@ func rectCheck(m [][]int, i, j, width, height int) bool {
 func rectFill(m [][]int, i, j, width, height int) {
 	for ii := i; ii < i+height; ii++ {
 		for jj := j; jj < j+width; jj++ {
-			m[ii][jj] = gconst.DEADPOINCHECKVAL
+			m[ii][jj] = DEADPOINCHECKVAL
 		}
 	}
 }
@@ -142,14 +139,18 @@ var gCount int //디버깅용 count
 var gi, gj int
 var gqpath string
 
-func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *int) {
+func scan(gs *mapStatus, i int, j int, depth int, path string, whiteCount int, num *int) {
+
+	// gClient.SendData()
 
 	if gIsSolved {
 		return
 	}
 
+	gClient.SendData(gs.GameMap, width, height)
+
 	if depth > 0 {
-		if deadPointGameOverCheck(m, depth-1) {
+		if deadPointGameOverCheck(gs.GameMap, depth-1) {
 			return
 		}
 	}
@@ -157,12 +158,10 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 	var noLog = false
 	cnt := 0
 	for d := 0; d < 4; d++ {
-
-		ni, nj := i+gconst.Direction[d].I, j+gconst.Direction[d].J
-		if isValid(ni, nj) && m[ni][nj] == 0 {
+		ni, nj := i+Direction[d].i, j+Direction[d].j
+		if isValid(ni, nj) && gs.GameMap[ni][nj] == 0 {
 			cnt++
 		}
-
 	}
 
 	if cnt <= 1 {
@@ -171,6 +170,7 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 
 	disconnectionCheck := false //맵이 서로 연결되지 않았는지
 	for d := 0; d < 4; d++ {
+
 		max := func(x, y int) int {
 			if x > y {
 				return x
@@ -178,43 +178,40 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 				return y
 			}
 		}
+
 		log := make([]pos, max(width, height))
 		logLen := 0
 
-		ni, nj := i+gconst.Direction[d].I, j+gconst.Direction[d].J
+		ni, nj := i+Direction[d].i, j+Direction[d].j
 
 		if !isValid(ni, nj) {
 			continue
 		}
 
 		if !disconnectionCheck {
-
 			if whiteCount > (int)(float64(width*height)*0.6) {
-				tileLog := makeCheckTile(m, i, j, whiteCount)
-				if checkBFS(m, ni, nj, tileLog.length, tileLog) {
+				tileLog := makeCheckTile(gs.GameMap, i, j, whiteCount)
+				if checkBFS(gs.GameMap, ni, nj, tileLog.length, tileLog) {
 					continue
 				}
 			} else {
-				if gameOverCheck(m, ni, nj, whiteCount, depth-1) {
+				if gameOverCheck(gs.GameMap, ni, nj, whiteCount, depth-1) {
 					continue
 				}
 			}
-			// if gameOverCheck(m, ni, nj, whiteCount, depth-1) {
-			// 	continue
-			// }
 			disconnectionCheck = true //한쪽만 체크하면 된다.
 		}
 
-		for isValid(ni, nj) && m[ni][nj] == 0 {
+		for isValid(ni, nj) && gs.GameMap[ni][nj] == 0 {
 
-			m[ni][nj] = depth
+			gs.GameMap[ni][nj] = depth
 			whiteCount--
 
 			log[logLen] = pos{ni, nj}
 			logLen++
 
-			ni += gconst.Direction[d].I
-			nj += gconst.Direction[d].J
+			ni += Direction[d].i
+			nj += Direction[d].j
 
 		}
 
@@ -226,17 +223,17 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 				fmt.Println("DEBUG ====== ", depth, "========path :", path)
 				for ii := 0; ii < height; ii++ {
 					for jj := 0; jj < width; jj++ {
-						if m[ii][jj] != 0 {
+						if gs.GameMap[ii][jj] != 0 {
 
-							if m[ii][jj] == 2 {
+							if gs.GameMap[ii][jj] == 2 {
 								gi = ii
 								gj = jj
 							}
 
-							if m[ii][jj] == 1 {
+							if gs.GameMap[ii][jj] == 1 {
 								fmt.Printf("111 ")
 							} else {
-								fmt.Printf("%03X ", m[ii][jj])
+								fmt.Printf("%03X ", gs.GameMap[ii][jj])
 							}
 						} else {
 							fmt.Printf("   ")
@@ -249,27 +246,24 @@ func scan(m [][]int, i int, j int, depth int, path string, whiteCount int, num *
 
 		//탐색후 복구
 		if logLen > 0 {
-			ni -= gconst.Direction[d].I
-			nj -= gconst.Direction[d].J
+			ni -= Direction[d].i
+			nj -= Direction[d].j
 			if noLog && depth > 3 {
-				scan(m, ni, nj, depth+1, path, whiteCount, num)
+				scan(gs, ni, nj, depth+1, path, whiteCount, num)
 			} else {
 				//디버깅은 이곳으로!
 				if gDebugMode && depth >= maxGoRoutine {
 					if gCount%1 == 0 {
-						// fmt.Println("DEBUG ====== ", *num, depth, path, whiteCount)
-						// printMap(m, depth)
-						// time.Sleep(3000 * time.Millisecond)
 						gCount = 0
 						maxGoRoutine = maxRoutineCheck()
 					}
 					gCount++
 				}
 
-				scan(m, ni, nj, depth+1, path+gconst.Dpath[d], whiteCount, num)
+				scan(gs, ni, nj, depth+1, path+Dpath[d], whiteCount, num)
 			}
 			for k := 0; k < logLen; k++ {
-				m[log[k].i][log[k].j] = 0
+				gs.GameMap[log[k].i][log[k].j] = 0
 				whiteCount++
 			}
 		}
@@ -285,6 +279,8 @@ var chkCount int
 func game(m [][]int, i int, j int) {
 	mymap := cpmap(m)
 
+	gs := mapStatus{width, height, mymap, 0}
+
 	mymap[i][j] = 2
 	startTime := time.Now()
 
@@ -292,17 +288,20 @@ func game(m [][]int, i int, j int) {
 	if gDebugMode {
 		gCount = 0
 	}
-	scan(mymap, i, j, 3, "", wCount-1, &num)
+
+	scan(&gs, i, j, 3, "", wCount-1, &num)
 
 	mutex.Lock()
 	goCount--
 
 	if !gIsSolved {
+
 		elapsedTime := time.Since(startTime)
+
 		if !goTestMode {
 			fmt.Printf("go end %d %d %d %s\n", i, j, goCount, elapsedTime)
 		}
-		// fmt.Println(maxGoRoutine)
+
 		chkMap[i][j] = 3
 	}
 	mutex.Unlock()
@@ -357,23 +356,16 @@ func GetSolution(w, h int, board string) (string, int, int) {
 			}
 		}
 		m = append(m, tmp)
-
 	}
-
-	// for i := 0; i < height; i++ {
-	// 	fmt.Println(m[i])
-	// }
 
 	chkMap = cpmap(m)
 	maxGoRoutine = maxRoutineCheck()
+
 	startTime := time.Now()
 
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
-			// for i := height - 1; i >= 0; i-- {
-			// 	for j := width - 1; j >= 0; j-- {
 			if m[i][j] == 0 && gIsSolved == false {
-				// fmt.Println(i, j, "start ", i, j)
 
 				for goCount > maxGoRoutine {
 					time.Sleep(1 * time.Second)
@@ -405,7 +397,6 @@ func GetSolution(w, h int, board string) (string, int, int) {
 				}
 
 				//성능 측정 및 디버깅 시 goRoutine을 사용하지 않으면 됨
-
 				chkMap[i][j] = 2
 				if gDebugMode {
 					game(m, i, j)
